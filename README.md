@@ -14,6 +14,7 @@
 9. AUC_PVAL.R: script for getting pvalues for the AUC of different PRS models
 10. PRS_PCA_plots.R: script for plotting PCA and PRS distributions
 11. PRS.sh: sample bash script for calculating and testing PRS
+12. run_PRSice.sh: bash script for running PRSice-2
 
 ## haplotypes
  Scripts for performing haplotype analysis in SNCA

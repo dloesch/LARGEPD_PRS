@@ -1,16 +1,19 @@
 ##script for survival analysis of PD AAO using survival package in R
 ##Kaplan-meier curves and cox regression stratified by PRS quintile
-
+#note: script was modified to remove external controls. Results remain the same but makes methods more straightforward
 #load packages
 library(survival)
 library(dplyr)
 library(survminer)
 
 #read in PRS data
-prs <- read.table("large_tb.merged.PRS.txt", header=TRUE, stringsAsFactors = FALSE)
+#prs <- read.table("large_tb.merged.PRS.txt", header=TRUE, stringsAsFactors = FALSE) #external controls
+prs <- read.table("large.PRS.txt", header=TRUE, stringsAsFactors = FALSE)
 
 # read in phenotpe data
-pheno <- read.table("large_tb.merged.10PC.pheno.txt", header=TRUE, stringsAsFactors = FALSE)
+#pheno <- read.table("large_tb.merged.10PC.pheno.txt", header=TRUE, stringsAsFactors = FALSE) #external controls
+pheno <- read.table("large.10PC.pheno.txt", header=TRUE, stringsAsFactors = FALSE)
+
 #read in AAO data
 aao <- read.csv("large-PD.AGE_ONSET.csv", header=TRUE)
 
@@ -107,7 +110,8 @@ g <- ggsurvplot(kms, conf.int = TRUE, surv.median.line = c("hv"), data=p1[!is.na
                 title=paste0("AAO by PRS ", group, ": All Subjects"),
                 xlab = "Age at PD Diagnosis", ylab="Probability", palette=colorBlindGrey8[2:8], pval.method = TRUE, break.x.by=5, xlim=c(0,85))
 
-pdf("large_tb.KM.quintile.pdf")
+#pdf("large_tb.KM.quintile.pdf")
+pdf("large.ALL.KM.quintile.pdf")
 print(g)
 dev.off()
 
@@ -117,7 +121,8 @@ group <- "QUINTILE"
 p$GROUP <- as.factor(p[[group]])
 p1 <- p[p$PD_STATUS ==1,]
 p1$surv <- Surv(time=p1$AGE_ONSET, p1$PD_STATUS)
-coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+SEX+SITE_STUDY, data=p1)
+#coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+SEX+SITE_STUDY, data=p1)
+coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+SEX+SITE, data=p1)
 results <- as.data.frame(summary(coxreg1)$coefficients[1:4,])
 
 #add confidence intervals
@@ -127,7 +132,8 @@ results$upper <- unlist(unname(ci[,4]))
 results$ci <- paste(signif(results$lower,3), "-", signif(results$upper,3))
 
 #non-peru sites
-coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+SEX+SITE_STUDY, data=p1[p1$SITE != "Peru_Lima",])
+#coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+SEX+SITE_STUDY, data=p1[p1$SITE != "Peru_Lima",])
+coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+SEX+SITE, data=p1[p1$SITE != "Peru_Lima",])
 results_np <- as.data.frame(summary(coxreg1)$coefficients[1:4,])
 
 ci <- summary(coxreg1)$conf.int[1:4,]
@@ -136,7 +142,8 @@ results_np$upper <- unlist(unname(ci[,4]))
 results_np$ci <- paste(signif(results$lower,3), "-", signif(results$upper,3))
 
 #peru sites
-coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+SEX, data=p1[p1$SITE == "Peru_Lima",])
+#coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+SEX, data=p1[p1$SITE == "Peru_Lima",])
+coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+SEX, data=p1[p1$SITE == "Peru",])
 results_p <- as.data.frame(summary(coxreg1)$coefficients[1:4,])
 
 ci <- summary(coxreg1)$conf.int[1:4,]
@@ -147,7 +154,8 @@ results_p$ci <- paste(signif(results$lower,3), "-", signif(results$upper,3))
 ###all subjects
 p1 <- p
 p1$surv <- Surv(time=p1$AGE_ONSET, p1$PD_STATUS)
-coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+SEX+SITE_STUDY, data=p1)
+#coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+SEX+SITE_STUDY, data=p1)
+coxreg1 <- coxph(surv~GROUP+PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10+SEX+SITE, data=p1)
 results2 <- as.data.frame(summary(coxreg1)$coefficients[1:4,])
 
 ci <- summary(coxreg1)$conf.int[1:4,]
@@ -157,6 +165,7 @@ results2$ci <- paste(signif(results2$lower,3), "-", signif(results2$upper,3))
 
 #save
 write.table(results, "large-PD.coxreg_results.cases.10PC.txt", sep='\t', quote=FALSE, row.names = TRUE, col.names = TRUE)
-write.table(results2, "large-PD_tb.coxreg_results.all_subjects.10PC.txt", sep='\t', quote=FALSE, row.names = TRUE, col.names = TRUE)
+#write.table(results2, "large-PD_tb.coxreg_results.all_subjects.10PC.txt", sep='\t', quote=FALSE, row.names = TRUE, col.names = TRUE)
+write.table(results2, "large-PD.coxreg_results.all_subjects.10PC.txt", sep='\t', quote=FALSE, row.names = TRUE, col.names = TRUE)
 write.table(results_p, "large-PD.coxreg_results.peru.txt", sep='\t', quote=FALSE, row.names = TRUE, col.names = TRUE)
 write.table(results_np, "large-PD.coxreg_results.other.txt", sep='\t', quote=FALSE, row.names = TRUE, col.names = TRUE)
