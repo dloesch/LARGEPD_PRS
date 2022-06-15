@@ -1,3 +1,5 @@
+library(ggplot2)
+
 ##read in phenotype file
 pheno <- read.table("large_tb.merged.pheno.txt", header=TRUE)
 
@@ -29,7 +31,7 @@ data$GROUP[data$PD_STATUS == 1 ] <- paste0(data$SITE_STUDY[data$PD_STATUS == 1],
 data$GROUP[data$PD_STATUS == 0 ] <- paste0(data$SITE_STUDY[data$PD_STATUS == 0 ], "_CONTROL")
 #create country label for fill
 
-groups <- levels(data$GROUP)
+groups <- unique(data$GROUP)
 means <- c()
 for(g in groups){
   means <- c(means, mean(data$PRS_SCALED[data$GROUP == g]))
